@@ -2,19 +2,23 @@ package org.viridia.scintil
 
 import scala.swing._
 import scala.swing.event.{ Key, SelectionChanged }
+import java.awt.{ FileDialog, Color, Toolkit }
 import java.awt.event.{ InputEvent, KeyEvent }
-import java.awt.{ Color, Toolkit }
+import java.io.{ File, FilenameFilter }
+import java.util.prefs.Preferences
 import javax.swing.{ BorderFactory, Box, Icon, ImageIcon, SwingUtilities }
 import javax.swing.KeyStroke.getKeyStroke
+import javax.swing.border.EmptyBorder
 import org.viridia.scintil.graph.{ Node, PreviewRasterSource }
 import org.viridia.scintil.ui._
-import javax.swing.border.EmptyBorder
 
 object ScintilApp extends SimpleSwingApplication {
   def top = new MainFrame {
     val screenSize = Toolkit.getDefaultToolkit().getScreenSize()
     val width = screenSize.getWidth().toInt
     val height = screenSize.getHeight().toInt
+    lazy val fileDialog = new FileDialog(top.peer)
+    val preferences = Preferences.userRoot().node(ScintilApp.getClass().getName());
 
     title = "Scintil"
 
@@ -183,7 +187,7 @@ object ScintilApp extends SimpleSwingApplication {
       accelerator = Some(getKeyStroke(KeyEvent.VK_O, shortcutKeyMask))
       mnemonic = KeyEvent.VK_O
       icon = loadToolbarIcon("general/Open16.gif")
-      def apply() = {}
+      def apply() = openGraph()
     })
 
     fileMenu.contents += new Separator
@@ -193,7 +197,7 @@ object ScintilApp extends SimpleSwingApplication {
       accelerator = Some(getKeyStroke(KeyEvent.VK_S, shortcutKeyMask))
       mnemonic = KeyEvent.VK_S
       icon = loadToolbarIcon("general/Save16.gif")
-      def apply() = {}
+      def apply() = saveGraph()
     })
 
     // File > Save As...
@@ -201,7 +205,7 @@ object ScintilApp extends SimpleSwingApplication {
       accelerator = Some(getKeyStroke(KeyEvent.VK_S, shortcutKeyMask | InputEvent.SHIFT_MASK))
       mnemonic = KeyEvent.VK_A
       icon = loadToolbarIcon("general/SaveAs16.gif")
-      def apply() = {}
+      def apply() = saveGraphAs()
     })
 
     // File > Revert
@@ -269,6 +273,70 @@ object ScintilApp extends SimpleSwingApplication {
     })
 
     updatePreviews()
+
+    // -----------------------------------------------------------------------
+    // Methods
+    // -----------------------------------------------------------------------
+
+    private object GRAPH_FILTER extends FilenameFilter {
+      override def accept(dir:File, filename:String):Boolean = {
+        return filename.endsWith(".sgr.xml")
+      }
+    }
+
+    private def openGraph() {
+      fileDialog.setFilenameFilter(GRAPH_FILTER);
+      fileDialog.setTitle("Open Graph");
+      fileDialog.setFile("");
+      fileDialog.setDirectory(preferences.get("graph.dir", fileDialog.getDirectory()));
+      fileDialog.setMode(FileDialog.LOAD);
+      fileDialog.setVisible(true);
+      val filename = fileDialog.getFile();
+      if (filename != null) {
+//        val file = new File(fileDialog.getDirectory(), filename);
+        graphView.graph.path = Some(filename)
+      }
+    }
+
+    private def saveGraph() {
+      if (graphView.graph.path.isEmpty) {
+        saveGraphAs();
+      } else {
+//        try {
+//          TileMapSerializer serializer = new TileMapSerializer(resMgr);
+//          serializer.saveToFile(tileMap, tileMap.getPath());
+//          tileMap.setModified(false);
+          // tileSetSelector.invalidate();
+//        } catch (e:IOException) {
+//          JOptionPane.showMessageDialog(frame, e.getMessage(), "IOError", JOptionPane.ERROR_MESSAGE);
+//        }
+      }
+    }
+
+    private def saveGraphAs() {
+      fileDialog.setFilenameFilter(GRAPH_FILTER);
+      fileDialog.setTitle("Save Graph As...");
+      fileDialog.setDirectory(preferences.get("graph.dir", fileDialog.getDirectory()));
+      fileDialog.setFile(graphView.graph.path.getOrElse("untitled.sgr.xml"));
+      fileDialog.setMode(FileDialog.SAVE);
+      fileDialog.setVisible(true);
+        val filename = fileDialog.getFile();
+        if (filename != null) {
+//          File file = new File(fileDialog.getDirectory(), filename);
+//          try {
+//            TileMapSerializer serializer = new TileMapSerializer(resMgr);
+//            serializer.saveToFile(tileMap, file);
+//            tileMap.setPath(file);
+//            tileMap.setModified(false);
+//            // tileSetSelector.invalidate();
+//            preferences.put("tilemap.dir", fileDialog.getDirectory());
+//          } catch (IOException e) {
+//            JOptionPane
+//                .showMessageDialog(frame, e.getMessage(), "IOError", JOptionPane.ERROR_MESSAGE);
+//          }
+//        }
+      }
+    }
   }
 
   def loadToolbarIcon(name: String): Icon = {

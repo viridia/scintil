@@ -29,7 +29,14 @@ class ColorGradientProperty(caption:String, var value:ColorGradient = new ColorG
     extends NodeProperty(caption) {
 }
 
-///** Node property for enumerations. */
-//class EnumerationProperty(caption:String, var value:Enumeration.Value)
-//    extends NodeProperty(caption) {
-//}
+/** Node property for enumerations. */
+abstract class EnumerationPropertyBase(caption:String, var value:Enumeration#Value)
+    extends NodeProperty(caption) {
+  def values:Seq[Enumeration#Value]
+}
+
+/** Node property for enumerations. */
+class EnumerationProperty[E <: Enumeration, V <: Enumeration#Value](
+    caption:String, val enum:E, var initial:V) extends EnumerationPropertyBase(caption, initial) {
+  def values:Seq[Enumeration#Value] = enum.values.toSeq
+}

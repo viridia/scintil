@@ -45,6 +45,21 @@ class PropertyEditor extends ScrollPane {
     }
     this.listenTo(ed)
   }
+  class EnumerationPresenter(prop:EnumerationPropertyBase, ed:ComboBox[Enumeration#Value])
+      extends ValuePresenter(prop) {
+    import scala.swing.event.SelectionChanged
+    def displayValue() = { ed.selection.item = prop.value }
+    def storeValue() {
+      if (prop.value != ed.selection.item) {
+        prop.value = ed.selection.item
+        PropertyEditor.this.fireNodeChanged()
+      }
+    }
+    reactions += {
+      case e:SelectionChanged => storeValue()
+    }
+    this.listenTo(ed.selection)
+  }
 
   var node:Option[Node] = None
   var presenters:List[ValuePresenter] = List()
@@ -122,6 +137,17 @@ class PropertyEditor extends ScrollPane {
               setLastGroupControl(null)
               editList.contents += ctrl
               presenters ::= new ColorGradientPresenter(prop, ctrl)
+            }
+            case prop:EnumerationPropertyBase => {
+              val ctrl = new ComboBox[Enumeration#Value](prop.values)
+              val label = new Label(prop.caption + " ")
+              val panel = new BorderPanel {
+                layout(label) = BorderPanel.Position.West
+                layout(ctrl) = BorderPanel.Position.Center
+              }
+              setLastGroupControl(null)
+              editList.contents += panel
+              presenters ::= new EnumerationPresenter(prop, ctrl)
             }
             case _ => Unit
           }

@@ -6,6 +6,7 @@ import org.viridia.scintil.generators.{ PerlinNoiseGenerator }
 /** A graph consists of nodes and arcs. */
 class Graph {
   var nodes = List[Node]()
+  var path:Option[String] = None
 
   nodes ::= new PerlinNoiseGenerator()
   nodes.head.position.x = 100

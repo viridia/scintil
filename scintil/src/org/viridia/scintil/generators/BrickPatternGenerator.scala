@@ -5,6 +5,10 @@ import java.awt.image.WritableRaster
 import org.viridia.scintil.graph._
 import org.viridia.scintil.math.MathUtils.{floor, smoothStep}
 
+object CornerShape extends Enumeration {
+  val Square, Mitered, Rounded = Value
+}
+
 class BrickPatternGenerator extends Generator {
   def caption = "Bricks"
 
@@ -17,7 +21,7 @@ class BrickPatternGenerator extends Generator {
   val offsetX = new FloatProperty("Offset X", 0, minVal = 0f, maxVal = .5f)
   val offsetY = new FloatProperty("Offset Y", 0, minVal = 0f, maxVal = .5f)
   val stagger = new FloatProperty("Stagger", .5f, minVal = 0f, maxVal = 1f)
-  // Corner
+  val corner = new EnumerationProperty("Corner Shape", CornerShape, CornerShape.Square)
 
   def fillRaster(rs:RasterSource, r:WritableRaster):Unit = {
     val du = 1.0f / r.getWidth()
@@ -33,8 +37,11 @@ class BrickPatternGenerator extends Generator {
         val xb = u * countX.value + xOffset
         val xi = math.round(xb).toFloat
         val xf = smoothStep(math.abs(xb - xi), spacingX.value, spacingX.value + blurX.value)
-        val value = math.min(yf, xf)
-//        val value = math.max(0, 1 - math.sqrt((1-xf) * (1-xf) + (1-yf) * (1-yf)))
+        val value = corner.value match {
+          case CornerShape.Square => math.min(yf, xf)
+          case CornerShape.Mitered => math.min(yf, xf)
+          case CornerShape.Rounded => math.max(0, 1 - math.sqrt((1-xf) * (1-xf) + (1-yf) * (1-yf)))
+        }
         r.setSample(x, y, 0, value)
         r.setSample(x, y, 1, value)
         r.setSample(x, y, 2, value)
