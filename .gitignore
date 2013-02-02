@@ -1,6 +1,7 @@
 *.class
 *.log
 .metadata
+.cache
 
 # Scala-IDE specific
 .scala_dependencies

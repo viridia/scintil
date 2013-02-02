@@ -1,0 +1,46 @@
+{
+  "nodes" : [ {
+    "id" : 1,
+    "type" : "org.viridia.scintil.generators.BrickPatternGenerator",
+    "position_x" : 91,
+    "position_y" : 370,
+    "countX" : 2,
+    "countY" : 4,
+    "spacingX" : 0.025,
+    "spacingY" : 0.05,
+    "blurX" : 0.1,
+    "blurY" : 0.2,
+    "offsetX" : 0.0,
+    "offsetY" : 0.0,
+    "stagger" : 0.5,
+    "corner" : "Square"
+  }, {
+    "id" : 2,
+    "type" : "org.viridia.scintil.filters.BlendFilter",
+    "position_x" : 390,
+    "position_y" : 230,
+    "function" : "Multiply"
+  }, {
+    "id" : 3,
+    "type" : "org.viridia.scintil.generators.PerlinNoiseGenerator",
+    "position_x" : 100,
+    "position_y" : 100,
+    "scaleX" : 1.0,
+    "scaleY" : 1.0,
+    "valueScale" : 1.0,
+    "peristence" : 0.5,
+    "startBand" : 1,
+    "endBand" : 8,
+    "seed" : -1,
+    "colorGradient" : [ [ 0.0, 0.0, 0.0, 0.0 ], [ 0.5, 255.0, 0.0, 0.0 ], [ 1.0, 255.0, 255.0, 255.0 ] ]
+  } ],
+  "arcs" : [ {
+    "src" : 3,
+    "dst" : 2,
+    "term" : "A"
+  }, {
+    "src" : 1,
+    "dst" : 2,
+    "term" : "B"
+  } ]
+}

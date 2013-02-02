@@ -4,12 +4,12 @@ import scala.swing._
 import scala.swing.event.{ Key, SelectionChanged }
 import java.awt.{ FileDialog, Color, Toolkit }
 import java.awt.event.{ InputEvent, KeyEvent }
-import java.io.{ File, FilenameFilter }
+import java.io.{ File, FilenameFilter, FileInputStream, FileOutputStream, IOException }
 import java.util.prefs.Preferences
 import javax.swing.{ BorderFactory, Box, Icon, ImageIcon, SwingUtilities }
 import javax.swing.KeyStroke.getKeyStroke
 import javax.swing.border.EmptyBorder
-import org.viridia.scintil.graph.{ Node, PreviewRasterSource }
+import org.viridia.scintil.graph.{ Graph, GraphSerializer, Node, PreviewRasterSource }
 import org.viridia.scintil.ui._
 
 object ScintilApp extends SimpleSwingApplication {
@@ -280,7 +280,7 @@ object ScintilApp extends SimpleSwingApplication {
 
     private object GRAPH_FILTER extends FilenameFilter {
       override def accept(dir:File, filename:String):Boolean = {
-        return filename.endsWith(".sgr.xml")
+        return filename.endsWith(".sgr")
       }
     }
 
@@ -293,8 +293,21 @@ object ScintilApp extends SimpleSwingApplication {
       fileDialog.setVisible(true);
       val filename = fileDialog.getFile();
       if (filename != null) {
-//        val file = new File(fileDialog.getDirectory(), filename);
-        graphView.graph.path = Some(filename)
+        try {
+          val file = new File(fileDialog.getDirectory(), filename);
+          val istrm = new FileInputStream(file)
+          val graph = GraphSerializer.deserialize(istrm)
+          istrm.close()
+          graphView.graph = graph
+          graphView.repaint()
+//          tileMap.setModified(false);
+          graphView.graph.path = Some(filename)
+          updatePreviews()
+        } catch {
+          case e:IOException => {
+            Dialog.showMessage(null, e.getMessage(), "IOError", Dialog.Message.Error)
+          }
+        }
       }
     }
 
@@ -302,14 +315,16 @@ object ScintilApp extends SimpleSwingApplication {
       if (graphView.graph.path.isEmpty) {
         saveGraphAs();
       } else {
-//        try {
-//          TileMapSerializer serializer = new TileMapSerializer(resMgr);
-//          serializer.saveToFile(tileMap, tileMap.getPath());
+        try {
+          val os = new FileOutputStream(graphView.graph.path.get)
+          GraphSerializer.serialize(graphView.graph, os)
 //          tileMap.setModified(false);
-          // tileSetSelector.invalidate();
-//        } catch (e:IOException) {
-//          JOptionPane.showMessageDialog(frame, e.getMessage(), "IOError", JOptionPane.ERROR_MESSAGE);
-//        }
+          os.close()
+        } catch {
+          case e:IOException => {
+            Dialog.showMessage(null, e.getMessage(), "IOError", Dialog.Message.Error)
+          }
+        }
       }
     }
 
@@ -317,24 +332,25 @@ object ScintilApp extends SimpleSwingApplication {
       fileDialog.setFilenameFilter(GRAPH_FILTER);
       fileDialog.setTitle("Save Graph As...");
       fileDialog.setDirectory(preferences.get("graph.dir", fileDialog.getDirectory()));
-      fileDialog.setFile(graphView.graph.path.getOrElse("untitled.sgr.xml"));
+      fileDialog.setFile(graphView.graph.path.getOrElse("untitled.sgr"));
       fileDialog.setMode(FileDialog.SAVE);
       fileDialog.setVisible(true);
-        val filename = fileDialog.getFile();
-        if (filename != null) {
-//          File file = new File(fileDialog.getDirectory(), filename);
-//          try {
-//            TileMapSerializer serializer = new TileMapSerializer(resMgr);
-//            serializer.saveToFile(tileMap, file);
-//            tileMap.setPath(file);
+      val filename = fileDialog.getFile();
+      fileDialog.setVisible(false);
+      if (filename != null) {
+        graphView.graph.path = Some(filename)
+        val file = new File(fileDialog.getDirectory(), filename);
+        try {
+          val os = new FileOutputStream(file)
+          GraphSerializer.serialize(graphView.graph, os)
+          os.close()
 //            tileMap.setModified(false);
-//            // tileSetSelector.invalidate();
-//            preferences.put("tilemap.dir", fileDialog.getDirectory());
-//          } catch (IOException e) {
-//            JOptionPane
-//                .showMessageDialog(frame, e.getMessage(), "IOError", JOptionPane.ERROR_MESSAGE);
-//          }
-//        }
+          preferences.put("graph.dir", fileDialog.getDirectory());
+        } catch {
+          case e:IOException => {
+            Dialog.showMessage(null, e.getMessage(), "IOError", Dialog.Message.Error)
+          }
+        }
       }
     }
   }
